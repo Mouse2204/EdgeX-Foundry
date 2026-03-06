@@ -1,0 +1,25 @@
+[
+  {
+    "apiVersion": "v3",
+    "device": {
+      "name": "Simulated-CPU",
+      "profileName": "CPU-Profile",
+      "serviceName": "device-virtual",
+      "adminState": "UNLOCKED",
+      "operatingState": "UP",
+      "labels": ["cpu"],
+      "autoEvents": [
+        {
+          "interval": "10s",
+          "onChange": false,
+          "sourceName": "ReadCPU"
+        }
+      ],
+      "protocols": {
+        "other": {
+          "Address": "simulated-cpu-001"
+        }
+      }
+    }
+  }
+]

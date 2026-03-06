@@ -1,0 +1,106 @@
+[
+  {
+    "apiVersion": "v3",
+    "profile": {
+      "name": "RPi-REST-Profile",
+      "manufacturer": "Raspberry",
+      "model": "Pi4",
+      "labels": ["rpi", "rest"],
+      "description": "Expanded profile for Raspberry Pi system metrics",
+      "deviceResources": [
+        {
+          "name": "Temperature",
+          "description": "CPU temperature in Celsius",
+          "properties": { "valueType": "Float32", "readWrite": "R", "units": "Celsius" }
+        },
+        {
+          "name": "CPUUsage",
+          "description": "CPU usage percent",
+          "properties": { "valueType": "Float32", "readWrite": "R", "units": "percent" }
+        },
+        {
+          "name": "ContextSwitches",
+          "description": "Total number of context switches since boot",
+          "properties": { "valueType": "Uint64", "readWrite": "R", "units": "switches" }
+        },
+        {
+          "name": "SwapIn",
+          "description": "Total swap in bytes",
+          "properties": { "valueType": "Uint64", "readWrite": "R", "units": "bytes" }
+        },
+        {
+          "name": "SwapOut",
+          "description": "Total swap out bytes",
+          "properties": { "valueType": "Uint64", "readWrite": "R", "units": "bytes" }
+        },
+        {
+          "name": "CPUFreq",
+          "description": "Current CPU frequency",
+          "properties": { "valueType": "Float32", "readWrite": "R", "units": "MHz" }
+        },
+        {
+          "name": "MemUsed",
+          "description": "Used RAM",
+          "properties": { "valueType": "Uint64", "readWrite": "R", "units": "bytes" }
+        },
+        {
+          "name": "MemFree",
+          "description": "Free RAM",
+          "properties": { "valueType": "Uint64", "readWrite": "R", "units": "bytes" }
+        },
+        {
+          "name": "DiskUsed",
+          "description": "Used disk space on root",
+          "properties": { "valueType": "Uint64", "readWrite": "R", "units": "bytes" }
+        },
+        {
+          "name": "NetSent",
+          "description": "Total bytes sent",
+          "properties": { "valueType": "Uint64", "readWrite": "R", "units": "bytes" }
+        },
+        {
+          "name": "NetRecv",
+          "description": "Total bytes received",
+          "properties": { "valueType": "Uint64", "readWrite": "R", "units": "bytes" }
+        },
+        {
+          "name": "LoadAvg1",
+          "description": "Load average 1 minute",
+          "properties": { "valueType": "Float32", "readWrite": "R", "units": "load" }
+        },
+        {
+          "name": "LoadAvg5",
+          "description": "Load average 5 minutes",
+          "properties": { "valueType": "Float32", "readWrite": "R", "units": "load" }
+        },
+        {
+          "name": "LoadAvg15",
+          "description": "Load average 15 minutes",
+          "properties": { "valueType": "Float32", "readWrite": "R", "units": "load" }
+        }
+      ],
+      "deviceCommands": [
+        {
+          "name": "ReadSensor",
+          "readWrite": "R",
+          "resourceOperations": [
+            { "deviceResource": "Temperature" },
+            { "deviceResource": "CPUUsage" },
+            { "deviceResource": "ContextSwitches" },
+            { "deviceResource": "SwapIn" },
+            { "deviceResource": "SwapOut" },
+            { "deviceResource": "CPUFreq" },
+            { "deviceResource": "MemUsed" },
+            { "deviceResource": "MemFree" },
+            { "deviceResource": "DiskUsed" },
+            { "deviceResource": "NetSent" },
+            { "deviceResource": "NetRecv" },
+            { "deviceResource": "LoadAvg1" },
+            { "deviceResource": "LoadAvg5" },
+            { "deviceResource": "LoadAvg15" }
+          ]
+        }
+      ]
+    }
+  }
+]

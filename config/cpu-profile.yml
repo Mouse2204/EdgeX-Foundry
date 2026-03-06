@@ -1,0 +1,27 @@
+name: "CPU-Profile"
+manufacturer: "Intel"
+model: "Simulated"
+labels:
+  - "cpu"
+description: "CPU metrics simulation"
+
+deviceResources:
+  - name: "CPUUsage"
+    description: "CPU usage percentage"
+    properties:
+      valueType: "Float32"
+      readWrite: "R"
+      units: "percent"
+  - name: "CPUTemperature"
+    description: "CPU temperature"
+    properties:
+      valueType: "Float32"
+      readWrite: "R"
+      units: "celsius"
+
+deviceCommands:
+  - name: "ReadCPU"
+    readWrite: "R"
+    resourceOperations:
+      - deviceResource: "CPUUsage"
+      - deviceResource: "CPUTemperature"

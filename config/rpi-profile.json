@@ -1,0 +1,42 @@
+[
+  {
+    "apiVersion": "v3",
+    "profile": {
+      "name": "RPi-MQTT-Profile",
+      "manufacturer": "Raspberry",
+      "model": "Pi4",
+      "labels": ["rpi", "mqtt"],
+      "description": "Profile for Raspberry Pi sensor data over MQTT",
+      "deviceResources": [
+        {
+          "name": "Temperature",
+          "description": "CPU temperature in Celsius",
+          "properties": {
+            "valueType": "Float32",
+            "readWrite": "R",
+            "units": "Celsius"
+          }
+        },
+        {
+          "name": "CPUUsage",
+          "description": "CPU usage percent",
+          "properties": {
+            "valueType": "Float32",
+            "readWrite": "R",
+            "units": "percent"
+          }
+        }
+      ],
+      "deviceCommands": [
+        {
+          "name": "ReadSensor",
+          "readWrite": "R",
+          "resourceOperations": [
+            { "deviceResource": "Temperature" },
+            { "deviceResource": "CPUUsage" }
+          ]
+        }
+      ]
+    }
+  }
+]

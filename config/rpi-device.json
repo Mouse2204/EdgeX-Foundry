@@ -1,0 +1,22 @@
+[
+  {
+    "apiVersion": "v3",
+    "device": {
+      "name": "RPi4-MQTT",
+      "profileName": "RPi-MQTT-Profile",
+      "serviceName": "device-mqtt",
+      "adminState": "UNLOCKED",
+      "operatingState": "UP",
+      "labels": ["rpi", "mqtt"],
+      "protocols": {
+        "mqtt": {
+          "CommandTopic": "edgex/command",
+          "Schema": "tcp",
+          "Host": "edgex-mqtt-broker",
+          "Port": "1883"
+        }
+      }
+    }
+  }
+]
+

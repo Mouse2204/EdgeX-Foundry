@@ -1,0 +1,19 @@
+[
+  {
+    "apiVersion": "v3",
+    "device": {
+      "name": "RPi4-REST",
+      "profileName": "RPi-REST-Profile",
+      "serviceName": "device-rest",
+      "adminState": "UNLOCKED",
+      "operatingState": "UP",
+      "labels": ["rpi", "rest"],
+      "protocols": {
+        "rest": {
+          "Address": "192.168.1.6",
+          "Port": "59986"
+        }
+      }
+    }
+  }
+]

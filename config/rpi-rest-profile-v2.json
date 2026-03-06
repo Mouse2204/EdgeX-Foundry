@@ -1,0 +1,72 @@
+[
+  {
+    "apiVersion": "v3",
+    "profile": {
+      "name": "RPi-REST-Profile-v2",
+      "manufacturer": "Raspberry",
+      "model": "Pi4",
+      "labels": ["rpi", "rest", "expanded"],
+      "description": "Expanded profile for Raspberry Pi system metrics (all dynamic counters)",
+      "deviceResources": [
+        { "name": "Temperature", "description": "CPU temperature in Celsius", "properties": { "valueType": "Float32", "readWrite": "R", "units": "Celsius" } },
+        { "name": "CPUUsage", "description": "CPU usage percent", "properties": { "valueType": "Float32", "readWrite": "R", "units": "percent" } },
+        { "name": "CPUFreq", "description": "Current CPU frequency", "properties": { "valueType": "Float32", "readWrite": "R", "units": "MHz" } },
+        { "name": "ContextSwitches", "description": "Total number of context switches", "properties": { "valueType": "Uint64", "readWrite": "R", "units": "switches" } },
+        { "name": "Interrupts", "description": "Total number of hardware interrupts", "properties": { "valueType": "Uint64", "readWrite": "R", "units": "interrupts" } },
+        { "name": "SoftInterrupts", "description": "Total number of software interrupts", "properties": { "valueType": "Uint64", "readWrite": "R", "units": "interrupts" } },
+        { "name": "Syscalls", "description": "Total system calls (approximate from /proc)", "properties": { "valueType": "Uint64", "readWrite": "R", "units": "syscalls" } },
+        { "name": "MemUsed", "description": "Used RAM", "properties": { "valueType": "Uint64", "readWrite": "R", "units": "bytes" } },
+        { "name": "MemFree", "description": "Free RAM", "properties": { "valueType": "Uint64", "readWrite": "R", "units": "bytes" } },
+        { "name": "SwapIn", "description": "Swap in bytes", "properties": { "valueType": "Uint64", "readWrite": "R", "units": "bytes" } },
+        { "name": "SwapOut", "description": "Swap out bytes", "properties": { "valueType": "Uint64", "readWrite": "R", "units": "bytes" } },
+        { "name": "DiskRead", "description": "Disk read bytes", "properties": { "valueType": "Uint64", "readWrite": "R", "units": "bytes" } },
+        { "name": "DiskWrite", "description": "Disk write bytes", "properties": { "valueType": "Uint64", "readWrite": "R", "units": "bytes" } },
+        { "name": "NetBytesSent", "description": "Network bytes sent", "properties": { "valueType": "Uint64", "readWrite": "R", "units": "bytes" } },
+        { "name": "NetBytesRecv", "description": "Network bytes received", "properties": { "valueType": "Uint64", "readWrite": "R", "units": "bytes" } },
+        { "name": "NetPacketsSent", "description": "Network packets sent", "properties": { "valueType": "Uint64", "readWrite": "R", "units": "packets" } },
+        { "name": "NetPacketsRecv", "description": "Network packets received", "properties": { "valueType": "Uint64", "readWrite": "R", "units": "packets" } },
+        { "name": "NetErrorsIn", "description": "Network receive errors", "properties": { "valueType": "Uint64", "readWrite": "R", "units": "errors" } },
+        { "name": "NetErrorsOut", "description": "Network transmit errors", "properties": { "valueType": "Uint64", "readWrite": "R", "units": "errors" } },
+        { "name": "LoadAvg1", "description": "Load average 1 minute", "properties": { "valueType": "Float32", "readWrite": "R", "units": "load" } },
+        { "name": "LoadAvg5", "description": "Load average 5 minutes", "properties": { "valueType": "Float32", "readWrite": "R", "units": "load" } },
+        { "name": "LoadAvg15", "description": "Load average 15 minutes", "properties": { "valueType": "Float32", "readWrite": "R", "units": "load" } },
+        { "name": "ProcessCount", "description": "Number of running processes", "properties": { "valueType": "Uint64", "readWrite": "R", "units": "processes" } },
+        { "name": "ThreadCount", "description": "Total number of threads", "properties": { "valueType": "Uint64", "readWrite": "R", "units": "threads" } },
+        { "name": "Uptime", "description": "System uptime in seconds", "properties": { "valueType": "Uint64", "readWrite": "R", "units": "seconds" } }
+      ],
+      "deviceCommands": [
+        {
+          "name": "ReadAll",
+          "readWrite": "R",
+          "resourceOperations": [
+            { "deviceResource": "Temperature" },
+            { "deviceResource": "CPUUsage" },
+            { "deviceResource": "CPUFreq" },
+            { "deviceResource": "ContextSwitches" },
+            { "deviceResource": "Interrupts" },
+            { "deviceResource": "SoftInterrupts" },
+            { "deviceResource": "Syscalls" },
+            { "deviceResource": "MemUsed" },
+            { "deviceResource": "MemFree" },
+            { "deviceResource": "SwapIn" },
+            { "deviceResource": "SwapOut" },
+            { "deviceResource": "DiskRead" },
+            { "deviceResource": "DiskWrite" },
+            { "deviceResource": "NetBytesSent" },
+            { "deviceResource": "NetBytesRecv" },
+            { "deviceResource": "NetPacketsSent" },
+            { "deviceResource": "NetPacketsRecv" },
+            { "deviceResource": "NetErrorsIn" },
+            { "deviceResource": "NetErrorsOut" },
+            { "deviceResource": "LoadAvg1" },
+            { "deviceResource": "LoadAvg5" },
+            { "deviceResource": "LoadAvg15" },
+            { "deviceResource": "ProcessCount" },
+            { "deviceResource": "ThreadCount" },
+            { "deviceResource": "Uptime" }
+          ]
+        }
+      ]
+    }
+  }
+]

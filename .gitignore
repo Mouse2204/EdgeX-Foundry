@@ -1,0 +1,63 @@
+# Python virtual environment
+venv/
+env/
+ENV/
+myenv/
+.env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.so
+.Python
+
+# CSV files (dữ liệu thu thập)
+*.csv
+!example.csv   # nếu muốn giữ một file mẫu
+
+# ZIP archives
+*.zip
+*.tar
+*.gz
+*.rar
+
+# Images
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.tiff
+*.ico
+
+# Logs and databases
+*.log
+*.sql
+*.sqlite
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Docker volumes (có thể không cần)
+volumes/
+data/
+
+# EdgeX specific (có thể thêm)
+edgex-db-data/
+kuiper-*
+
+# Project specific (tuỳ chọn)
+pi_dataset*.csv
