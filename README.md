@@ -1,157 +1,111 @@
-Dưới đây là file `README.md` tổng hợp toàn bộ quá trình từ setup mạng, chạy EdgeX, thu thập dữ liệu từ Raspberry Pi, và xuất dữ liệu. Nội dung được trình bày chi tiết, dễ làm theo.
+# 🚀 Raspberry Pi System Monitor with EdgeX Foundry
 
-```markdown
-# Dự án thu thập dữ liệu Raspberry Pi với EdgeX Foundry
+Dự án này triển khai hệ thống thu thập dữ liệu hiệu năng hệ thống từ Raspberry Pi (Client) về máy chủ Windows/WSL2 (Server) thông qua framework EdgeX Foundry. Dữ liệu được quản lý tập trung và tự động xuất ra định dạng CSV để phục vụ phân tích.
 
-Dự án này hướng dẫn cách thiết lập EdgeX Foundry trên Windows (WSL) để thu thập các chỉ số hệ thống từ Raspberry Pi (nhiệt độ CPU, tần số, context switches, bộ nhớ, load average, v.v.) qua REST API, lưu trữ vào EdgeX, và xuất ra file CSV để phân tích.
+## 📌 Mục lục
+- [Kiến trúc hệ thống](#kiến-trúc-hệ-thống)
+- [Yêu cầu hệ thống](#yêu-cầu-hệ-thống)
+- [Cài đặt môi trường](#cài-đặt-môi-trường)
+- [Cấu hình mạng & Firewall](#cấu-hình-mạng--firewall)
+- [Triển khai EdgeX](#triển-khai-edgex)
+- [Định nghĩa Metadata (Device & Profile)](#định-nghĩa-metadata-device--profile)
+- [Thu thập & Xuất dữ liệu](#thu-thập--xuất-dữ-liệu)
 
-## Yêu cầu
+## 🏗 Kiến trúc hệ thống
 
-- Máy tính Windows có hỗ trợ WSL2 (cài Ubuntu 20.04/22.04)
-- Docker và Docker Compose trên WSL
-- Raspberry Pi (chạy Raspberry Pi OS) cùng mạng LAN với máy Windows
-- Python 3.7+ trên cả Windows (WSL) và Raspberry Pi
+Dự án sử dụng thiết kế **Metadata-Driven Ingestion**:
 
-## Các bước thực hiện
+- **Edge Side (RPi)**: Chạy Python script thu thập metrics qua `psutil` và đẩy dữ liệu tới REST API của EdgeX.
+- **Platform Side (WSL)**: EdgeX Foundry (v4.0 Odessa) tiếp nhận, thẩm định dữ liệu dựa trên Profile JSON và lưu trữ vào Core Data.
+- **Export Side**: Script Python tự động lấy dữ liệu từ Core Data và xử lý thành file CSV.
+
+## 💻 Yêu cầu hệ thống
+
+| Thành phần | Chi tiết |
+|------------|----------|
+| Server | Windows 10/11 + WSL2 (Ubuntu 20.04/22.04) |
+| Client | Raspberry Pi 3/4/5 (Raspberry Pi OS) |
+| Network | Cùng mạng LAN (WiFi hoặc Ethernet) |
+| Phần mềm | Docker, Docker Compose, Python 3.7+ |
+
+## 🛠 Hướng dẫn chi tiết
 
 ### 1. Cài đặt môi trường trên Windows (WSL)
 
-#### 1.1. Cài đặt Docker trên WSL
+#### 1.1. Cài đặt Docker
 ```bash
-# Trong WSL Ubuntu
+# Cài đặt nhanh Docker engine
 curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
 sudo usermod -aG docker $USER
-exit
-# Mở lại WSL và kiểm tra
-docker --version
 ```
+*(Lưu ý: Bạn cần khởi động lại terminal WSL sau bước này)*
 
-#### 1.2. Tải EdgeX Docker Compose file
+#### 1.2. Tải EdgeX Compose
 ```bash
-cd ~
 git clone https://github.com/edgexfoundry/edgex-compose.git
 cd edgex-compose
-# Sử dụng phiên bản 4.0 (Odessa)
 git checkout odessa
 cd compose-builder
 make build no-secty
-cp docker-compose-no-secty.yml ~/edgex-mqtt/   # tạo thư mục nếu chưa có
 ```
 
-Hoặc sử dụng file `docker-compose-no-secty.yml` đã được cung cấp trong dự án.
+### 2. Cấu hình mạng và Firewall
 
-### 2. Cấu hình mạng và firewall
+> **Quan trọng**: EdgeX chạy trong Docker/WSL cần được thông tuyến với mạng LAN để Raspberry Pi có thể "nhìn" thấy.
 
-#### 2.1. Lấy địa chỉ IP của Windows trên mạng LAN
-```bash
-ipconfig
-```
-Kết quả: `IPv4 Address: 192.168.1.6` (ví dụ). Ghi nhớ IP này.
-
-#### 2.2. Mở port 59986 (cho device-rest) trên Windows Firewall
-Chạy PowerShell với quyền Administrator:
-```powershell
-New-NetFirewallRule -DisplayName "EdgeX REST 59986" -Direction Inbound -Protocol TCP -LocalPort 59986 -Action Allow
-```
-
-#### 2.3. Thiết lập port forwarding (nếu device-rest chỉ lắng nghe localhost)
-Trong WSL, kiểm tra:
-```bash
-docker logs edgex-device-rest | grep "Route"
-```
-Nếu thấy route nhưng từ máy ngoài không kết nối được, tạo port forward:
-```powershell
-netsh interface portproxy add v4tov4 listenport=59986 listenaddress=192.168.1.6 connectport=59986 connectaddress=127.0.0.1
-```
+1. **Lấy IP Windows**: Mở CMD và gõ `ipconfig`. (Ví dụ: `192.168.1.6`)
+2. **Mở Port 59986**: Chạy PowerShell (Admin):
+   ```powershell
+   New-NetFirewallRule -DisplayName "EdgeX REST 59986" -Direction Inbound -Protocol TCP -LocalPort 59986 -Action Allow
+   ```
+3. **Port Forwarding**: (Nếu RPi không kết nối được trực tiếp vào WSL)
+   ```powershell
+   netsh interface portproxy add v4tov4 listenport=59986 listenaddress=0.0.0.0 connectport=59986 connectaddress=127.0.0.1
+   ```
 
 ### 3. Chạy EdgeX trên WSL
 
-#### 3.1. Khởi động các container
 ```bash
-cd /mnt/d/EdgeX   # hoặc thư mục chứa file docker-compose
+# Khởi động dịch vụ
+cd /path/to/edgex-compose/compose-files
 docker compose -f docker-compose-no-secty.yml up -d
+
+# Kiểm tra trạng thái các container
+docker ps --format "table {{.Names}}\t{{.Status}}"
 ```
 
-#### 3.2. Kiểm tra container đã chạy
+### 4. Tạo Profile và Device (Metadata)
+
+Gửi thông tin định nghĩa thiết bị tới EdgeX Core Metadata:
+
+#### 4.1. Đăng ký Profile
 ```bash
-docker ps
-```
-Phải thấy `edgex-core-metadata`, `edgex-core-data`, `edgex-device-rest`, v.v.
-
-### 4. Tạo profile và device trên EdgeX
-
-#### 4.1. Tạo file profile mở rộng (`rpi-rest-profile-v2.json`)
-Nội dung file (có thể lấy từ dự án):
-```json
-[
-  {
-    "apiVersion": "v3",
-    "profile": {
-      "name": "RPi-REST-Profile-v2",
-      "manufacturer": "Raspberry",
-      "model": "Pi4",
-      "labels": ["rpi", "rest", "expanded"],
-      "description": "Expanded profile for Raspberry Pi system metrics",
-      "deviceResources": [
-        {"name": "Temperature", "properties": {"valueType": "Float32", "readWrite": "R", "units": "Celsius"}},
-        {"name": "CPUUsage", "properties": {"valueType": "Float32", "readWrite": "R", "units": "percent"}},
-        {"name": "CPUFreq", "properties": {"valueType": "Float32", "readWrite": "R", "units": "MHz"}},
-        {"name": "ContextSwitches", "properties": {"valueType": "Uint64", "readWrite": "R", "units": "switches"}},
-        {"name": "Interrupts", "properties": {"valueType": "Uint64", "readWrite": "R", "units": "interrupts"}},
-        {"name": "SoftInterrupts", "properties": {"valueType": "Uint64", "readWrite": "R", "units": "interrupts"}},
-        {"name": "MemUsed", "properties": {"valueType": "Uint64", "readWrite": "R", "units": "bytes"}},
-        {"name": "MemFree", "properties": {"valueType": "Uint64", "readWrite": "R", "units": "bytes"}},
-        {"name": "LoadAvg1", "properties": {"valueType": "Float32", "readWrite": "R", "units": "load"}},
-        {"name": "LoadAvg5", "properties": {"valueType": "Float32", "readWrite": "R", "units": "load"}},
-        {"name": "LoadAvg15", "properties": {"valueType": "Float32", "readWrite": "R", "units": "load"}},
-        {"name": "ProcessCount", "properties": {"valueType": "Uint64", "readWrite": "R", "units": "processes"}},
-        {"name": "Uptime", "properties": {"valueType": "Uint64", "readWrite": "R", "units": "seconds"}}
-      ]
-    }
-  }
-]
+curl -X POST http://localhost:59881/api/v3/deviceprofile \
+  -H "Content-Type: application/json" \
+  -d @config/rpi-rest-profile-v2.json
 ```
 
-#### 4.2. Tạo file device (`rpi-rest-device-v2.json`)
-```json
-[
-  {
-    "apiVersion": "v3",
-    "device": {
-      "name": "RPi4-REST-v2",
-      "profileName": "RPi-REST-Profile-v2",
-      "serviceName": "device-rest",
-      "adminState": "UNLOCKED",
-      "operatingState": "UP",
-      "labels": ["rpi", "rest"],
-      "protocols": {
-        "rest": {
-          "Address": "192.168.1.6",   // IP của Windows
-          "Port": "59986"
-        }
-      }
-    }
-  }
-]
-```
-
-#### 4.3. Đăng ký profile và device
+#### 4.2. Đăng ký Device
 ```bash
-cd /mnt/d/EdgeX/config
-curl -X POST http://localhost:59881/api/v3/deviceprofile -H "Content-Type: application/json" -d @rpi-rest-profile-v2.json
-curl -X POST http://localhost:59881/api/v3/device -H "Content-Type: application/json" -d @rpi-rest-device-v2.json
+curl -X POST http://localhost:59881/api/v3/device \
+  -H "Content-Type: application/json" \
+  -d @config/rpi-rest-device-v2.json
+```
+
+#### 4.3. Kiểm tra
+```bash
 curl http://localhost:59881/api/v3/device/name/RPi4-REST-v2 | jq .
 ```
 
-### 5. Cài đặt script thu thập trên Raspberry Pi
+### 5. Script thu thập trên Raspberry Pi
 
-#### 5.1. Cài đặt thư viện Python
+#### 5.1. Cài đặt thư viện
 ```bash
-pip3 install psutil requests pandas
+pip3 install psutil requests
 ```
 
-#### 5.2. Tạo script `system_monitor.py`
+#### 5.2. Tạo file `system_monitor.py`
 ```python
 #!/usr/bin/env python3
 import requests
@@ -160,7 +114,7 @@ import time
 
 DEVICE_NAME = "RPi4-REST-v2"
 BASE_URL = "http://192.168.1.6:59986/api/v3/resource"
-INTERVAL = 3  # giây
+INTERVAL = 3
 
 dynamic_metrics = [
     'Temperature', 'CPUUsage', 'CPUFreq', 'ContextSwitches',
@@ -203,7 +157,7 @@ def send_metric(name, value):
     except:
         return False
 
-print(f"Bắt đầu thu thập mỗi {INTERVAL}s...")
+print(f"🚀 Bắt đầu thu thập mỗi {INTERVAL}s...")
 while True:
     try:
         data = get_metrics()
@@ -211,12 +165,12 @@ while True:
         for k, v in data.items():
             if send_metric(k, v):
                 ok += 1
-        print(f"[{time.strftime('%H:%M:%S')}] Temp:{data['Temperature']:.1f} CPU:{data['CPUUsage']:.1f}% Gửi {ok}/{len(data)}")
+        print(f"[{time.strftime('%H:%M:%S')}] Temp:{data['Temperature']:.1f}°C CPU:{data['CPUUsage']:.1f}% | Gửi {ok}/{len(data)}")
         time.sleep(INTERVAL)
     except KeyboardInterrupt:
         break
     except Exception as e:
-        print("Lỗi:", e)
+        print("❌ Lỗi:", e)
         time.sleep(INTERVAL)
 ```
 
@@ -226,9 +180,11 @@ python3 system_monitor.py
 ```
 Để chạy nền, dùng `tmux` hoặc `screen`.
 
-### 6. Xuất dữ liệu từ EdgeX ra CSV (trên WSL)
+## 📊 Xử lý dữ liệu đầu ra
 
-#### 6.1. Script tự động cập nhật (`auto_update.py`)
+Hệ thống cung cấp script `auto_update.py` để làm phẳng (flatten) dữ liệu từ dạng key-value của EdgeX sang bảng CSV hoàn chỉnh.
+
+### Script `auto_update.py` (chạy trên WSL)
 ```python
 import requests
 import pandas as pd
@@ -283,9 +239,10 @@ def process_and_save(readings):
     cols = ['bin', 'datetime'] + [c for c in dynamic_metrics if c in df_pivot.columns]
     df_pivot = df_pivot[cols]
     df_pivot.to_csv(OUTPUT_FILE, index=False)
-    print(f"[{datetime.now()}] Đã ghi {len(df_pivot)} dòng.")
+    print(f"[{datetime.now()}] ✅ Đã ghi {len(df_pivot)} dòng vào {OUTPUT_FILE}")
 
 def main():
+    print(f"🔄 Tự động cập nhật mỗi {INTERVAL}s...")
     while True:
         readings = get_all_readings()
         if readings:
@@ -296,23 +253,34 @@ if __name__ == "__main__":
     main()
 ```
 
-#### 6.2. Chạy script cập nhật
+### Chạy script cập nhật
 ```bash
 python auto_update.py
 ```
-Script sẽ chạy nền, mỗi 60 giây cập nhật file CSV.
 
-### 7. Lấy dữ liệu từ máy khác (cùng mạng LAN)
-Sử dụng URL:
-```
-http://192.168.1.6:59880/api/v3/reading/device/name/RPi4-REST-v2?limit=100
-```
-Hoặc dùng script Python với `requests`.
+### Cấu trúc dữ liệu CSV
+| bin | datetime | Temperature | CPUUsage | MemUsed | ... |
+|:---|:---|:---|:---|:---|:---|
+| 1772632762000000000 | 2026-03-04 13:59:22.009 | 49.173 | 0.0 | 318971904 | ... |
 
-### 8. Git và .gitignore
+## 📁 Cấu trúc thư mục dự án
 
-#### 8.1. Tạo file `.gitignore`
 ```
+.
+├── config/
+│   ├── rpi-rest-device-v2.json      # Cấu hình thiết bị
+│   └── rpi-rest-profile-v2.json     # Định nghĩa tài nguyên dữ liệu
+├── scripts/
+│   ├── system_monitor.py            # Chạy trên Raspberry Pi
+│   └── auto_update.py               # Chạy trên WSL (Xuất CSV)
+├── docker-compose-no-secty.yml      # File chạy EdgeX
+├── .gitignore                        # Bỏ qua các file không cần thiết
+└── README.md                         # Tài liệu này
+```
+
+## 🔒 .gitignore
+
+```gitignore
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -347,19 +315,11 @@ docker-compose.override.yml
 *.log
 ```
 
-#### 8.2. Tạo repository và đẩy lên
-```bash
-git init
-git add .
-git commit -m "Initial commit: EdgeX Raspberry Pi monitor"
-git branch -M main
-git remote add origin https://github.com/yourusername/edgex-rpi-monitor.git
-git push -u origin main
-```
+## 📝 Giấy phép
 
-## Kết luận
+Dự án này được phát hành dưới bản quyền **MIT License**. Vui lòng trích dẫn nguồn khi sử dụng cho mục đích học thuật tại **HCMUT**.
 
-Bạn đã thiết lập thành công hệ thống thu thập dữ liệu từ Raspberry Pi vào EdgeX, tự động cập nhật CSV và sẵn sàng cho phân tích. Mọi thông tin cấu hình đều được lưu trong dự án, dễ dàng tái tạo trên máy khác.
-```
+---
 
-File này bao gồm tất cả các bước, từ setup mạng, chạy Docker, tạo profile, script thu thập, xuất dữ liệu, và cả .gitignore. Bạn có thể điều chỉnh địa chỉ IP cho phù hợp.
+**Tác giả:** [Tên bạn]  
+**Last updated:** 2026-03-06
